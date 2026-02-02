@@ -8,25 +8,24 @@ DATA_DIR = BASE_DIR / "data"
 SITE_DIR = BASE_DIR / "site"
 
 TOOLS_FILE = DATA_DIR / "tools.yaml"
-
 SITE_DIR.mkdir(exist_ok=True)
 
+BASE_URL = "https://aiopentec.github.io/open-source-analytics-alternatives"
 GITHUB_API = "https://api.github.com/repos/{}"
 
 
-def fetch_github_data(repo):
+def fetch_github(repo):
     try:
         r = requests.get(GITHUB_API.format(repo), timeout=10)
         if r.status_code == 200:
-            data = r.json()
+            j = r.json()
             return {
-                "stars": data.get("stargazers_count", 0),
-                "updated": data.get("updated_at", "")[:10],
-                "url": data.get("html_url", "")
+                "stars": j.get("stargazers_count", 0),
+                "updated": j.get("updated_at", "")[:10],
             }
     except Exception:
         pass
-    return {"stars": 0, "updated": "Unknown", "url": ""}
+    return {"stars": 0, "updated": "Unknown"}
 
 
 def load_tools():
@@ -34,67 +33,63 @@ def load_tools():
         return yaml.safe_load(f)
 
 
-def write_file(name, content):
+def write(name, content):
     (SITE_DIR / name).write_text(content.strip(), encoding="utf-8")
 
 
-def generate_homepage(tools):
+def generate_home(tools):
     links = "\n".join(
-        f"- [{t['name']}]({t['name'].lower().replace(' ', '-')}.html)"
-        for t in tools
+        f"- [{t['name']}]({t['slug']}.html)" for t in tools
     )
 
-    content = f"""
+    write(
+        "index.md",
+        f"""
 # Open-Source Analytics Alternatives
 
-Compare the best **privacy-friendly, open-source alternatives** to proprietary analytics tools.
+Compare the best **privacy-friendly, open-source alternatives** to proprietary analytics platforms.
 
 {links}
-"""
-    write_file("index.md", content)
+""",
+    )
 
 
-def generate_tool_page(tool, all_tools):
-    slug = tool["name"].lower().replace(" ", "-")
-
-    gh = fetch_github_data(tool["github"])
-    stars = gh["stars"]
-    updated = gh["updated"]
-
-    top_pick_html = ""
+def generate_tool_page(tool, tools):
+    top_pick = ""
     if tool.get("top_pick"):
-        top_pick_html = f"""
+        top_pick = f"""
 <div class="top-pick">
-🏆 <strong>Top Pick:</strong> {tool["name"]}<br>
+🏆 <strong>Top Pick:</strong> {tool['name']}<br>
 Recommended for most privacy-focused websites.
 </div>
 """
 
-    table_header = "| Tool | Stars | Self-Hosted | Privacy |\n|------|-------|-------------|---------|\n"
-    table_rows = ""
+    table = "| Tool | Stars | Self-Hosted | Privacy |\n"
+    table += "|------|-------|-------------|---------|\n"
 
-    for t in all_tools:
-        gh_t = fetch_github_data(t["github"])
-        table_rows += (
-            f"| {t['name']} | {gh_t['stars']} | "
+    for t in tools:
+        table += (
+            f"| {t['name']} | {t['stars']} | "
             f"{'✅' if t.get('self_hosted') else '❌'} | "
             f"{t.get('privacy', 'unknown').title()} |\n"
         )
 
-    content = f"""
+    write(
+        f"{tool['slug']}.md",
+        f"""
 # {tool['name']} Alternatives
 
 {tool.get('description', '')}
 
-⭐ **{stars} GitHub stars** • 🕒 **Updated {updated}**
+⭐ **{tool['stars']} GitHub stars** • 🕒 **Updated {tool['updated']}**
 
-{top_pick_html}
+{top_pick}
 
 ---
 
 ## Comparison Table
 
-{table_header}{table_rows}
+{table}
 
 ---
 
@@ -105,60 +100,64 @@ Many open-source analytics tools require hosting and maintenance.
 If you prefer a managed option, consider privacy-friendly VPS providers.
 
 _Links may become affiliate links in the future. Recommendations are based on relevance, not payment._
-"""
-    write_file(f"{slug}.md", content)
+""",
+    )
 
 
 def generate_sitemap(tools):
-    base = "https://aiopentec.github.io/open-source-analytics-alternatives"
-    urls = [f"{base}/"]
-    urls += [f"{base}/{t['name'].lower().replace(' ', '-')}.html" for t in tools]
+    urls = [f"{BASE_URL}/"] + [
+        f"{BASE_URL}/{t['slug']}.html" for t in tools
+    ]
 
-    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    xml += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
-
-    for url in urls:
-        xml += f"  <url><loc>{url}</loc></url>\n"
-
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for u in urls:
+        xml += f"  <url><loc>{u}</loc></url>\n"
     xml += "</urlset>"
-    write_file("sitemap.xml", xml)
+
+    write("sitemap.xml", xml)
 
 
 def generate_rss(tools):
-    base = "https://aiopentec.github.io/open-source-analytics-alternatives"
     now = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")
-
     items = ""
-    for t in tools:
-        slug = t["name"].lower().replace(" ", "-")
-        items += f"""
-        <item>
-          <title>{t['name']} Alternatives</title>
-          <link>{base}/{slug}.html</link>
-          <pubDate>{now}</pubDate>
-        </item>
-        """
 
-    rss = f"""<?xml version="1.0"?>
+    for t in tools:
+        items += f"""
+<item>
+  <title>{t['name']} Alternatives</title>
+  <link>{BASE_URL}/{t['slug']}.html</link>
+  <pubDate>{now}</pubDate>
+</item>
+"""
+
+    write(
+        "rss.xml",
+        f"""<?xml version="1.0"?>
 <rss version="2.0">
 <channel>
 <title>Open-Source Analytics Alternatives</title>
-<link>{base}/</link>
-<description>Automatically updated open-source analytics comparisons</description>
+<link>{BASE_URL}/</link>
+<description>Automatically updated open-source comparisons</description>
 {items}
 </channel>
 </rss>
-"""
-    write_file("rss.xml", rss)
+""",
+    )
 
 
 def main():
     tools = load_tools()
 
-    generate_homepage(tools)
+    for t in tools:
+        t["slug"] = t["name"].lower().replace(" ", "-")
+        gh = fetch_github(t["github"])
+        t.update(gh)
 
-    for tool in tools:
-        generate_tool_page(tool, tools)
+    generate_home(tools)
+
+    for t in tools:
+        generate_tool_page(t, tools)
 
     generate_sitemap(tools)
     generate_rss(tools)
