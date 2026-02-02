@@ -1,0 +1,8 @@
+<rss version='2.0'><channel>
+<title>Open-Source Analytics Alternatives</title>
+<item><title>matomo</title><link>/matomo.html</link></item>
+<item><title>plausible</title><link>/plausible.html</link></item>
+<item><title>umami</title><link>/umami.html</link></item>
+<item><title>posthog</title><link>/posthog.html</link></item>
+<item><title>ackee</title><link>/ackee.html</link></item>
+</channel></rss>

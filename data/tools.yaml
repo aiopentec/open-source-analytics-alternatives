@@ -1,0 +1,34 @@
+- name: Matomo
+  slug: matomo
+  category: analytics
+  repo: https://github.com/matomo-org/matomo
+  website: https://matomo.org
+  description: Full-featured open-source web analytics platform with strong privacy controls.
+
+- name: Plausible
+  slug: plausible
+  category: analytics
+  repo: https://github.com/plausible/analytics
+  website: https://plausible.io
+  description: Lightweight, privacy-first analytics focused on simplicity.
+
+- name: Umami
+  slug: umami
+  category: analytics
+  repo: https://github.com/umami-software/umami
+  website: https://umami.is
+  description: Simple self-hosted web analytics with modern UI.
+
+- name: PostHog
+  slug: posthog
+  category: analytics
+  repo: https://github.com/PostHog/posthog
+  website: https://posthog.com
+  description: Open-source product analytics with event tracking.
+
+- name: Ackee
+  slug: ackee
+  category: analytics
+  repo: https://github.com/electerious/Ackee
+  website: https://ackee.electerious.com
+  description: Self-hosted, Node.js-based analytics tool designed with privacy in mind.
