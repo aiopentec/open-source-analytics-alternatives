@@ -4,6 +4,7 @@
   repo: https://github.com/matomo-org/matomo
   website: https://matomo.org
   description: Full-featured open-source web analytics platform with strong privacy controls.
+  top_pick: true
 
 - name: Plausible
   slug: plausible
