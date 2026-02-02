@@ -5,6 +5,14 @@ os.makedirs("site", exist_ok=True)
 
 tools = yaml.safe_load(open("data/tools.yaml"))
 top_picks = yaml.safe_load(open("config/top_picks.yaml"))
+top_pick_html = ""
+if tool.get("top_pick"):
+    top_pick_html = f"""
+<div class="top-pick">
+🏆 <strong>Top Pick:</strong> {tool["name"]}<br>
+Recommended for most privacy-focused websites.
+</div>
+"""
 
 def github_stats(repo_url):
     api = repo_url.replace("https://github.com/", "https://api.github.com/repos/")
