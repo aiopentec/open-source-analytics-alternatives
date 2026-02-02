@@ -4,7 +4,10 @@ from markdown import markdown
 SITE_DIR = Path("site")
 
 for md in SITE_DIR.glob("*.md"):
-    html_body = markdown(md.read_text(encoding="utf-8"))
+    html_body = markdown(
+    md.read_text(encoding="utf-8"),
+    extensions=["tables"]
+)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
